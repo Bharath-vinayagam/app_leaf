@@ -46,18 +46,37 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final prediction = await ApiService.predictDisease(_selectedImage!);
-      
+      // Get prediction and confidence from backend
+      final predictionResult = await ApiService.predictDisease(_selectedImage!);
+      // predictionResult should be a Map<String, dynamic> with 'prediction' and 'confidence'
+      final prediction = predictionResult['prediction'] ?? 'Unknown';
+      var confidenceRaw = predictionResult['confidence'];
+      double? confidence;
+      if (confidenceRaw is double) {
+        confidence = confidenceRaw;
+      } else if (confidenceRaw is int) {
+        confidence = confidenceRaw.toDouble();
+      } else if (confidenceRaw is String) {
+        confidence = double.tryParse(confidenceRaw);
+      }
+      if (confidence == null) throw Exception('No confidence score from backend');
+
+      // Get symptoms, treatments, isHealthy from about page (getDiseaseInfo)
+      final diseaseInfo = await ApiService.getDiseaseInfo(prediction);
+      final symptoms = List<String>.from(diseaseInfo['symptoms'] ?? []);
+      final treatments = List<String>.from(diseaseInfo['treatments'] ?? []);
+      final isHealthy = prediction.toLowerCase().contains('healthy');
+
       // Create detection object
       final detection = DiseaseDetection(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         image: _selectedImage!,
         diseaseName: prediction,
-        confidence: 0.85, // Mock confidence score
+        confidence: confidence,
         timestamp: DateTime.now(),
-        symptoms: ['Yellow spots', 'Wilting leaves'],
-        treatments: ['Remove affected leaves', 'Apply fungicide'],
-        isHealthy: prediction.toLowerCase().contains('healthy'),
+        symptoms: symptoms,
+        treatments: treatments,
+        isHealthy: isHealthy,
       );
 
       // Add to history

@@ -37,17 +37,35 @@ class DiseaseDetection {
     };
   }
 
-  factory DiseaseDetection.fromJson(Map<String, dynamic> json) {
+  /// Factory method to create a model from backend JSON response + local image
+    factory DiseaseDetection.fromBackendJson(Map<String, dynamic> json, File image) {
+    final diseaseName = json['class'] ?? 'Unknown';
+    final confidence = (json['confidence'] ?? 0.0).toDouble();
+
+    // ✅ Determine if it’s healthy
+    final isHealthy = diseaseName.toLowerCase().contains('healthy');
+
+    // ✅ Set fallback values for symptoms & treatments
+    final List<String> defaultSymptoms = isHealthy
+        ? []
+        : ['Leaf discoloration', 'Spots or blight', 'Wilting or mold'];
+
+    final List<String> defaultTreatments = isHealthy
+        ? []
+        : ['Use fungicide', 'Prune infected leaves', 'Ensure proper irrigation'];
+
+    // ✅ Return the model instance
     return DiseaseDetection(
-      id: json['id'],
-      image: File(json['imagePath']),
-      diseaseName: json['diseaseName'],
-      confidence: json['confidence'].toDouble(),
-      timestamp: DateTime.parse(json['timestamp']),
-      location: json['location'],
-      symptoms: List<String>.from(json['symptoms']),
-      treatments: List<String>.from(json['treatments']),
-      isHealthy: json['isHealthy'],
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      image: image,
+      diseaseName: diseaseName,
+      confidence: confidence,
+      timestamp: DateTime.now(),
+      location: null,
+      symptoms: defaultSymptoms,
+      treatments: defaultTreatments,
+      isHealthy: isHealthy,
     );
   }
-} 
+
+}

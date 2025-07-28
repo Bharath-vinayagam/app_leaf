@@ -8,9 +8,11 @@ import 'providers/disease_history_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'utils/app_theme.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   runApp(const LeafDiseaseApp());
 }
 

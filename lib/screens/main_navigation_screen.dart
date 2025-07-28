@@ -5,6 +5,7 @@ import 'result_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'about_screen.dart';
+import '../widgets/ai_fab.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -68,6 +69,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ],
       ),
+      floatingActionButton: const AIFab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
