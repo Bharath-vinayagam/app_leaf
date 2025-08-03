@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'home_screen.dart';
 import 'camera_screen.dart';
 import 'result_screen.dart';
@@ -6,6 +7,7 @@ import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'about_screen.dart';
 import '../widgets/ai_fab.dart';
+import '../utils/app_theme.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
@@ -33,44 +35,83 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        elevation: 16,
-        backgroundColor: Colors.white.withOpacity(0.95),
-        selectedItemColor: Colors.green.shade800,
-        unselectedItemColor: Colors.grey.shade400,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        iconSize: 34,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.eco, size: 34),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics, size: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info_outline_rounded, size: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history, size: 32),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings, size: 32),
-            label: '',
-          ),
-        ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: isDark ? AppTheme.cyberGradient : AppTheme.neonGradient,
+        ),
+        child: _pages[_selectedIndex],
       ),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.glassmorphismDark.color : AppTheme.glassmorphismLight.color,
+          borderRadius: BorderRadius.circular(25),
+          border: isDark ? AppTheme.glassmorphismDark.border : AppTheme.glassmorphismLight.border,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            selectedItemColor: AppTheme.neonGradient.colors.first,
+            unselectedItemColor: isDark ? Colors.white.withOpacity(0.6) : Colors.black54,
+            showSelectedLabels: true,
+            showUnselectedLabels: true,
+            selectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 11,
+            ),
+            iconSize: 24,
+            items: [
+              _buildNavItem(Icons.eco_rounded, 'Detect', 0),
+              _buildNavItem(Icons.analytics_rounded, 'Results', 1),
+              _buildNavItem(Icons.info_outline_rounded, 'About', 2),
+              _buildNavItem(Icons.history_rounded, 'History', 3),
+              _buildNavItem(Icons.settings_rounded, 'Settings', 4),
+            ],
+          ),
+        ),
+      ).animate().slideY(begin: 0.3, duration: 800.ms, curve: Curves.easeOutCubic),
       floatingActionButton: const AIFab(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  BottomNavigationBarItem _buildNavItem(IconData icon, String label, int index) {
+    final isSelected = _selectedIndex == index;
+    
+    return BottomNavigationBarItem(
+      icon: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: isSelected ? AppTheme.neonGradient : null,
+          color: isSelected ? null : Colors.transparent,
+        ),
+        child: Icon(
+          icon,
+          size: isSelected ? 26 : 24,
+        ),
+      ),
+      label: label,
     );
   }
 }
@@ -78,6 +119,52 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 class _DetectionResultsScreenPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Detection Results Page (to be implemented)'));
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.glassmorphismDark.color : AppTheme.glassmorphismLight.color,
+          borderRadius: BorderRadius.circular(20),
+          border: isDark ? AppTheme.glassmorphismDark.border : AppTheme.glassmorphismLight.border,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppTheme.neonGradient,
+              ),
+              child: const Icon(
+                Icons.analytics_rounded,
+                color: Colors.white,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Detection Results',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'View your plant disease detection results here',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isDark ? Colors.white.withOpacity(0.8) : Colors.black54,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.8, 0.8)),
+    );
   }
 } 

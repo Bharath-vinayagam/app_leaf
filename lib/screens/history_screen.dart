@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/disease_history_provider.dart';
 import '../models/disease_detection.dart';
+import '../utils/app_theme.dart';
 import 'result_screen.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -10,37 +12,101 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: theme.colorScheme.surface,
-        appBar: AppBar(
-          title: Row(
-            children: [
-              Icon(Icons.history, color: Colors.white),
-              const SizedBox(width: 10),
-              const Text('Detection History'),
-            ],
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: isDark ? AppTheme.cyberGradient : AppTheme.neonGradient,
           ),
-          elevation: 4,
-          backgroundColor: const Color(0xFF047857),
-          foregroundColor: Colors.white,
-          bottom: TabBar(
-            labelColor: theme.colorScheme.onPrimary,
-            unselectedLabelColor: theme.colorScheme.onPrimary.withOpacity(0.7),
-            indicatorColor: theme.colorScheme.secondary,
-            tabs: const [
-              Tab(text: 'All'),
-              Tab(text: 'Favorites'),
-            ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Futuristic App Bar
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.glassmorphismDark.color : AppTheme.glassmorphismLight.color,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppTheme.neonGradient,
+                            ),
+                            child: const Icon(
+                              Icons.history_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Detection History',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Track your plant health journey',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: isDark ? Colors.white.withOpacity(0.8) : Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: TabBar(
+                          labelColor: isDark ? Colors.white : Colors.black87,
+                          unselectedLabelColor: isDark ? Colors.white.withOpacity(0.6) : Colors.black54,
+                          indicatorColor: AppTheme.neonGradient.colors.first,
+                          indicatorWeight: 3,
+                          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                          tabs: const [
+                            Tab(text: 'All'),
+                            Tab(text: 'Favorites'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().slideY(begin: -0.3, duration: 600.ms, curve: Curves.easeOutCubic),
+
+                // History List
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _HistoryList(detections: context.watch<DiseaseHistoryProvider>().detections),
+                      _HistoryList(detections: context.watch<DiseaseHistoryProvider>().favorites),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        body: TabBarView(
-          children: [
-            _HistoryList(detections: context.watch<DiseaseHistoryProvider>().detections),
-            _HistoryList(detections: context.watch<DiseaseHistoryProvider>().favorites),
-          ],
         ),
       ),
     );
@@ -55,34 +121,51 @@ class _HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     if (detections.isEmpty) {
-      return Center(
+      return Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.glassmorphismDark.color : AppTheme.glassmorphismLight.color,
+          borderRadius: BorderRadius.circular(20),
+          border: isDark ? AppTheme.glassmorphismDark.border : AppTheme.glassmorphismLight.border,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.history,
-              size: 64,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No detections yet',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppTheme.neonGradient,
+              ),
+              child: const Icon(
+                Icons.history_rounded,
+                color: Colors.white,
+                size: 48,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
+            Text(
+              'No detections yet',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               'Start by detecting a disease to see it here',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: isDark ? Colors.white.withOpacity(0.8) : Colors.black54,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
-      );
+      ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.8, 0.8));
     }
 
     return ListView.builder(
@@ -91,16 +174,27 @@ class _HistoryList extends StatelessWidget {
       itemBuilder: (context, index) {
         final detection = detections[index];
         final isHealthy = detection.isHealthy;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
+        
+        return Container(
           margin: const EdgeInsets.only(bottom: 16),
-          child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 6,
-            shadowColor: isHealthy ? Colors.green.shade100 : Colors.orange.shade100,
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.glassmorphismDark.color : AppTheme.glassmorphismLight.color,
+            borderRadius: BorderRadius.circular(20),
+            border: isDark ? AppTheme.glassmorphismDark.border : AppTheme.glassmorphismLight.border,
+            boxShadow: [
+              BoxShadow(
+                color: isHealthy 
+                  ? const Color(0xFF10B981).withOpacity(0.2)
+                  : AppTheme.neonGradient.colors[2].withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
             child: InkWell(
+              borderRadius: BorderRadius.circular(20),
               onTap: () {
                 Navigator.push(
                   context,
@@ -109,94 +203,107 @@ class _HistoryList extends StatelessWidget {
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        detection.image,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
+                    // Image
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isHealthy 
+                            ? const Color(0xFF10B981).withOpacity(0.3)
+                            : AppTheme.neonGradient.colors[2].withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.file(
+                          detection.image,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
+                    
+                    // Content
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                isHealthy ? Icons.eco : Icons.warning_amber_rounded,
-                                color: isHealthy ? Colors.green : Colors.orange,
-                                size: 22,
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: isHealthy 
+                                    ? const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF10B981)])
+                                    : AppTheme.neonGradient,
+                                ),
+                                child: Icon(
+                                  isHealthy ? Icons.eco_rounded : Icons.warning_amber_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   detection.diseaseName,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: isHealthy ? Colors.green.shade800 : Colors.orange.shade800,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black87,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           Text(
-                            '${(detection.confidence * 100).round()}% confidence',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            'Confidence: ${(detection.confidence * 100).round()}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isHealthy 
+                                ? const Color(0xFF10B981)
+                                : AppTheme.neonGradient.colors[2],
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _formatDate(detection.timestamp),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            'Detected on ${_formatDate(detection.timestamp)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white.withOpacity(0.7) : Colors.black54,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        context.read<DiseaseHistoryProvider>().favorites.contains(detection)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: Colors.red,
-                      ),
-                      onPressed: () {
-                        context.read<DiseaseHistoryProvider>().toggleFavorite(detection);
-                      },
+                    
+                    // Arrow
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: isDark ? Colors.white.withOpacity(0.6) : Colors.black54,
+                      size: 16,
                     ),
                   ],
                 ),
               ),
             ),
           ),
-        );
+        ).animate().fadeIn(duration: 400.ms, delay: (index * 100).ms).slideX(begin: 0.3);
       },
     );
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} days ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hours ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minutes ago';
-    } else {
-      return 'Just now';
-    }
+    return '${date.day}/${date.month}/${date.year}';
   }
 } 
