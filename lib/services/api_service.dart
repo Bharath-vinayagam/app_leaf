@@ -3,20 +3,27 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
+  // 🔗 Base URL of your FastAPI backend
+  // ⚠️ Replace with your laptop's IP when testing on real device
+  // Android emulator -> "http://10.0.2.2:8000"
+  // iOS simulator   -> "http://127.0.0.1:8000"
+  // Physical device -> "http://<YOUR_LAPTOP_IP>:8000"
   static const String _baseUrl = "http://10.126.101.156:8000";
   static const String _predictEndpoint = "/predict";
 
+  /// Upload image to backend for disease prediction
   static Future<Map<String, dynamic>> predictDisease(File image) async {
     try {
       print('🌐 Sending image to backend: $_baseUrl$_predictEndpoint');
-      
+
       final request = http.MultipartRequest(
-        'POST', 
-        Uri.parse('$_baseUrl$_predictEndpoint')
+        'POST',
+        Uri.parse('$_baseUrl$_predictEndpoint'),
       );
-      
+
+      // ✅ FIXED: Backend expects "file", not "image"
       request.files.add(
-        await http.MultipartFile.fromPath('file', image.path)
+        await http.MultipartFile.fromPath('file', image.path),
       );
 
       final response = await request.send();
@@ -28,31 +35,28 @@ class ApiService {
       if (responseBody.statusCode == 200) {
         final data = json.decode(responseBody.body);
         print('🔍 Parsed data: $data');
-        
-        // Expecting at least 'prediction' and 'confidence' fields
-        final result = {
-          'prediction': data['prediction'] ?? data['class'] ?? 'Unknown',
+
+        return {
+          'prediction': data['class'] ?? 'Unknown',
           'confidence': data['confidence'],
         };
-        
-        print('✅ Final result: $result');
-        return result;
       } else {
         print('❌ API Error: ${responseBody.statusCode} - ${responseBody.body}');
         throw Exception('Prediction failed: ${responseBody.statusCode} - ${responseBody.body}');
       }
     } catch (e) {
       print('💥 Network error: $e');
-      
+
       // Fallback to mock data for testing
       print('🔄 Using fallback mock data');
       return {
         'prediction': _getMockPrediction(),
-        'confidence': 0.85, // 85% confidence for mock data
+        'confidence': 0.85,
       };
     }
   }
 
+  /// Mock prediction for offline testing
   static String _getMockPrediction() {
     final diseases = [
       'Healthy Leaf',
@@ -63,17 +67,15 @@ class ApiService {
       'Bacterial Spot',
       'Yellow Leaf Curl Virus',
     ];
-    
-    // Return a random disease for demo
+
     final random = DateTime.now().millisecond % diseases.length;
     return diseases[random];
   }
 
-  // Add your OpenAI API key here
+  // 🧑‍🌾 Disease information (local + OpenAI fallback)
   static const String _openAIApiKey = 'YOUR_OPENAI_API_KEY';
 
   static Future<Map<String, dynamic>> getDiseaseInfo(String diseaseName) async {
-    // Mock disease information
     final diseaseInfo = {
       'Early Blight': {
         'description': 'A fungal disease that affects tomato and potato plants',
@@ -129,11 +131,11 @@ class ApiService {
     if (diseaseInfo.containsKey(diseaseName)) {
       return diseaseInfo[diseaseName]!;
     } else {
-      // Use OpenAI to generate info for unknown diseases
       return await _fetchDiseaseInfoFromOpenAI(diseaseName);
     }
   }
 
+  /// Fetch extra disease info using OpenAI (fallback)
   static Future<Map<String, dynamic>> _fetchDiseaseInfoFromOpenAI(String diseaseName) async {
     final url = Uri.parse('https://api.openai.com/v1/chat/completions');
     final prompt =
@@ -159,7 +161,7 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final content = data['choices'][0]['message']['content'];
-      // Parse the JSON from the AI's response
+
       try {
         final info = json.decode(content);
         return {
@@ -169,7 +171,6 @@ class ApiService {
           'prevention': List<String>.from(info['prevention'] ?? []),
         };
       } catch (e) {
-        // If parsing fails, return a generic fallback
         return {
           'description': 'No detailed information available for $diseaseName.',
           'symptoms': ['Unknown symptoms'],
@@ -178,7 +179,6 @@ class ApiService {
         };
       }
     } else {
-      // If OpenAI API fails, return a generic fallback
       return {
         'description': 'No detailed information available for $diseaseName.',
         'symptoms': ['Unknown symptoms'],
@@ -187,4 +187,4 @@ class ApiService {
       };
     }
   }
-} 
+}
